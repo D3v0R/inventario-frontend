@@ -1,45 +1,46 @@
 const API_URL = "https://inventario-backend1-1.onrender.com/productos";
 // Función para consultar los datos guardados en MongoDB Atlas
+const API_URL = 'http://localhost:3000/productos';
+
+// 1. Función para obtener y mostrar productos
 async function obtenerProductos() {
-try {
-const res = await fetch(API_URL);
-const datos = await res.json();
-const tabla = document.getElementById("tabla");
-tabla.innerHTML = "";
-datos.forEach(prod => {
-tabla.innerHTML += `
-<tr>
-<td>${prod.nombre}</td>
-<td>$${prod.precio}</td>
-<td>${prod.existencia} pzas</td>
-</tr>`;
+    const respuesta = await fetch(API_URL);
+    const productos = await respuesta.json();
+    const tabla = document.getElementById('tabla');
+    
+    tabla.innerHTML = ''; // Limpiar tabla antes de recargar
+    
+    productos.forEach(prod => {
+        tabla.innerHTML += `
+            <tr>
+                <td>${prod.nombre}</td>
+                <td>$${prod.precio}</td>
+                <td>${prod.existencia}</td>
+            </tr>
+        `;
+    });
+}
+
+// 2. Función para registrar un nuevo producto
+document.getElementById('formProducto').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nuevoProducto = {
+        nombre: document.getElementById('nombre').value,
+        precio: document.getElementById('precio').value,
+        existencia: document.getElementById('existencia').value
+    };
+
+    await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoProducto)
+    });
+
+    // Limpiar formulario y actualizar tabla
+    e.target.reset();
+    obtenerProductos();
 });
-} catch (err) {
-console.error("Error al traer datos:", err);
-}
-}
-// Función para enviar un nuevo registro a través del servidor hacia MongoDB
-document.getElementById("formProducto").addEventListener("submit", async (e) => {
-e.preventDefault();
-const nuevoObj = {
-nombre: document.getElementById("nombre").value,
-precio: Number(document.getElementById("precio").value),
-existencia: Number(document.getElementById("existencia").value)
-};
-try {
-const res = await fetch(API_URL, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify(nuevoObj)
-});
-if(res.ok) {
-alert("¡Guardado con éxito en MongoDB Atlas!");
-document.getElementById("formProducto").reset();
-obtenerProductos(); // Recarga la tabla de manera dinámica
-}
-} catch (err) {
-console.error("Error al enviar datos:", err);
-}
-});
-// Cargar la base de datos inmediatamente al abrir la página
+
+// Cargar productos al abrir la página
 obtenerProductos();
