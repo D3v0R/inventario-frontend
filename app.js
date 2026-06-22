@@ -1,6 +1,4 @@
 const API_URL = "https://inventario-backend1-1.onrender.com/productos";
-const API_URL = 'http://localhost:3000/productos';
-
 // 1. Obtener y mostrar productos
 async function obtenerProductos() {
     const res = await fetch(API_URL);
