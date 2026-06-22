@@ -2,20 +2,31 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario NoSQL</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        input, button { width: 100%; padding: 10px; margin: 8px 0; }
-        table { width: 100%; border-collapse: collapse; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+        
+        /* Estilo para el buscador */
+        .busqueda-container { display: flex; gap: 10px; align-items: center; }
+        .btn-buscar { background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; width: auto; padding: 10px 20px; }
+        
+        button { background: #0066cc; color: white; border: none; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #0066cc; color: white; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <h2>Panel de Inventario</h2>
+    
     <div class="card">
+        <h3>Registrar Producto</h3>
         <form id="formProducto">
             <input type="text" id="nombre" placeholder="Nombre" required>
             <input type="number" id="precio" placeholder="Precio" required>
@@ -23,10 +34,18 @@
             <button type="submit">Guardar</button>
         </form>
     </div>
+
     <div class="card">
-        <input type="text" id="busqueda" placeholder="Buscar por nombre..." onkeyup="filtrarProductos()">
+        <h3>Existencias en Base de Datos</h3>
+        <div class="busqueda-container">
+            <input type="text" id="busqueda" placeholder="Buscar por nombre..." onkeyup="if(event.key === 'Enter') filtrarProductos()">
+            <button class="btn-buscar" onclick="filtrarProductos()">Buscar</button>
+        </div>
+        
         <table>
-            <thead><tr><th>Artículo</th><th>Precio</th><th>Stock</th><th>Acción</th></tr></thead>
+            <thead>
+                <tr><th>Artículo</th><th>Precio</th><th>Stock</th><th>Acción</th></tr>
+            </thead>
             <tbody id="tabla"></tbody>
         </table>
     </div>
