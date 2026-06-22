@@ -1,46 +1,62 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+const API_URL = 'http://localhost:3000/productos';
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+// 1. Obtener y mostrar productos
+async function obtenerProductos() {
+    const res = await fetch(API_URL);
+    const productos = await res.json();
+    mostrarTabla(productos);
+}
 
-// Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("Conexión exitosa a MongoDB Atlas"))
-  .catch(err => console.error("Error de conexión:", err));
+// 2. Función para renderizar la tabla (necesaria para que aparezcan editar y eliminar)
+function mostrarTabla(productos) {
+    const tabla = document.getElementById('tabla');
+    tabla.innerHTML = '';
+    productos.forEach(p => {
+        tabla.innerHTML += `<tr>
+            <td>${p.nombre}</td>
+            <td>$${p.precio}</td>
+            <td>${p.existencia}</td>
+            <td>
+                <button onclick="editarProducto('${p._id}', '${p.nombre}', ${p.precio}, ${p.existencia})" style="background:orange; color:white; border:none; padding:5px;">Editar</button>
+                <button onclick="eliminarProducto('${p._id}')" style="background:red; color:white; border:none; padding:5px;">Eliminar</button>
+            </td>
+        </tr>`;
+    });
+}
 
-const ProductoSchema = new mongoose.Schema({
-  nombre: String,
-  precio: Number,
-  existencia: Number
-});
+// 3. Función de Búsqueda (Filtra en tiempo real)
+function filtrarProductos() {
+    const busqueda = document.getElementById('busqueda').value.toLowerCase();
+    fetch(API_URL)
+        .then(res => res.json())
+        .then(productos => {
+            const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(busqueda));
+            mostrarTabla(filtrados);
+        });
+}
 
-const Producto = mongoose.model('Producto', ProductoSchema);
+// 4. Función de Edición
+async function editarProducto(id, nombre, precio, existencia) {
+    const n = prompt("Nuevo nombre:", nombre);
+    const p = prompt("Nuevo precio:", precio);
+    const e = prompt("Nueva cantidad:", existencia);
+    if (n && p && e) {
+        await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ nombre: n, precio: p, existencia: e })
+        });
+        obtenerProductos();
+    }
+}
 
-// --- CRUD ---
-app.get('/productos', async (req, res) => {
-  const productos = await Producto.find();
-  res.json(productos);
-});
+// 5. Función de Eliminación
+async function eliminarProducto(id) {
+    if(confirm('¿Seguro que deseas eliminar este producto?')) {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        obtenerProductos();
+    }
+}
 
-app.post('/productos', async (req, res) => {
-  const nuevoProducto = new Producto(req.body);
-  await nuevoProducto.save();
-  res.json(nuevoProducto);
-});
-
-app.put('/productos/:id', async (req, res) => {
-  const productoActualizado = await Producto.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(productoActualizado);
-});
-
-app.delete('/productos/:id', async (req, res) => {
-  await Producto.findByIdAndDelete(req.params.id);
-  res.json({ mensaje: "Eliminado" });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor activo en puerto ${PORT}`));
+// Cargar la tabla al iniciar
+obtenerProductos();
